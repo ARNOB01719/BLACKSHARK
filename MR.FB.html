@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat-box {
+            width: 80%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 80%;
+        }
+        .sent {
+            background-color: #DCF8C6;
+            align-self: flex-end;
+        }
+        .received {
+            background-color: #F0F0F0;
+            align-self: flex-start;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+        }
+        #send-button {
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 0;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            padding: 10px;
+        }
+        #loading {
+            display: block;
+            font-size: 30px;
+            color: blue;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .blinking {
+            animation: blinkingText 0.8s infinite;
+        }
+        @keyframes blinkingText {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        .lds-ring {
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+        .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 51px;
+            height: 51px;
+            margin: 6px;
+            border: 6px solid #000;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #000 transparent transparent transparent;
+        }
+        @keyframes lds-ring {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-box">
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="message-input" placeholder="Type your message here">
+            <div id="send-button" onclick="sendMessage()">Send</div>
+        </div>
+        <div id="loading" class="blinking">
+            A
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket('wss://echo.websocket.org');
+
+        ws.onopen = function(event) {
+            console.log('WebSocket is open now.');
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        ws.onmessage = function(event) {
+            const messagesDiv = document.getElementById('messages');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message received';
+            newMessage.innerText = 'Received: ' + event.data;
+            messagesDiv.appendChild(newMessage);
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                ws.send(message);
+                const messagesDiv = document.getElementById('messages');
+                const newMessage = document.createElement('div');
+                newMessage.className = 'message sent';
+                newMessage.innerText = 'Sent: ' + message;
+                messagesDiv.appendChild(newMessage);
+                messageInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
